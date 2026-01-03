@@ -1,4 +1,6 @@
 import React, { useState, useEffect } from 'react';
+import { db } from '../firebase';
+import { ref, onValue, push, remove, update } from 'firebase/database';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Plane, Briefcase, CalendarHeart, Cloud, Plus, CheckCircle2, Circle } from 'lucide-react';
 import Button from '../components/ui/Button';
@@ -13,32 +15,38 @@ const GoalTypes = {
 };
 
 const Goals = () => {
-  const [goals, setGoals] = useState(() => {
-    const saved = localStorage.getItem('love_space_goals');
-    return saved ? JSON.parse(saved) : [];
-  });
+  const [goals, setGoals] = useState([]);
   const [isAdding, setIsAdding] = useState(false);
   const [newGoal, setNewGoal] = useState({ title: '', date: '', type: 'dream' });
 
   useEffect(() => {
-    localStorage.setItem('love_space_goals', JSON.stringify(goals));
-  }, [goals]);
+    const goalsRef = ref(db, 'goals');
+    return onValue(goalsRef, (snapshot) => {
+      const data = snapshot.val();
+      if (data) {
+        const list = Object.keys(data).map(key => ({ id: key, ...data[key] }));
+        setGoals(list);
+      } else {
+        setGoals([]);
+      }
+    });
+  }, []);
 
   const handleAdd = (e) => {
     e.preventDefault();
     if (!newGoal.title.trim()) return;
-
-    setGoals([...goals, { ...newGoal, id: Date.now(), completed: false }].sort((a, b) => new Date(a.date) - new Date(b.date)));
+    push(ref(db, 'goals'), { ...newGoal, completed: false });
     setNewGoal({ title: '', date: '', type: 'dream' });
     setIsAdding(false);
   };
 
   const toggleComplete = (id) => {
-    setGoals(goals.map(g => g.id === id ? { ...g, completed: !g.completed } : g));
+    const goal = goals.find(g => g.id === id);
+    update(ref(db, `goals/${id}`), { completed: !goal.completed });
   };
 
   const deleteGoal = (id) => {
-    setGoals(goals.filter(g => g.id !== id));
+    remove(ref(db, `goals/${id}`));
   };
 
   return (
