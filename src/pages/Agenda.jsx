@@ -16,7 +16,7 @@ function getMonthMatrix(current) {
   const startWeekday = start.getDay();
   const daysInMonth = end.getDate();
   const days = [];
-  // Ajustement pour que la semaine commence le Lundi (Lundi = 1, Dimanche = 0)
+  // Adjust for week starting on Monday (Monday = 1, Sunday = 0)
   const offset = startWeekday === 0 ? 6 : startWeekday - 1;
   for (let i = 0; i < offset; i++) days.push(null);
   for (let d = 1; d <= daysInMonth; d++) days.push(new Date(current.getFullYear(), current.getMonth(), d));
@@ -28,7 +28,6 @@ const DayCell = ({ date, events, color }) => {
   if (!date) return <div className="h-24 bg-gray-50/30 rounded-xl" />;
   const isToday = new Date().toDateString() === date.toDateString();
   
-  // Filtrer les événements pour ce jour précis
   const dateStr = date.toISOString().split('T')[0];
   const dayEvents = events.filter(e => e.date === dateStr);
 
@@ -73,11 +72,11 @@ const Agenda = () => {
     e.preventDefault();
     if (!newEvent.title || !newEvent.date) return;
     push(ref(db, 'events'), newEvent);
-    setNewEvent({ ...newEvent, title: '', time: '' }); // On garde la date et le owner pour aller plus vite
+    setNewEvent({ ...newEvent, title: '', time: '' });
   };
 
   const removeEvent = (id) => {
-    if(window.confirm("Supprimer cet événement ?")) {
+    if(window.confirm("Delete this event?")) {
       remove(ref(db, `events/${id}`));
     }
   };
@@ -90,25 +89,24 @@ const Agenda = () => {
     <div className="max-w-6xl mx-auto p-4 space-y-8 pb-20 font-sans">
       <div className="flex flex-col md:flex-row items-center justify-between gap-4">
         <h2 className="text-3xl font-serif text-love-900 font-bold flex items-center gap-3">
-          <CalendarIcon size={32} /> Notre Agenda
+          <CalendarIcon size={32} /> Shared Agenda
         </h2>
         <div className="flex items-center gap-4 bg-white px-4 py-2 rounded-2xl shadow-sm border border-warm-beige">
           <button onClick={() => setCurrentDate(new Date(currentDate.setMonth(currentDate.getMonth() - 1)))}><ChevronLeft /></button>
           <span className="font-serif text-lg min-w-[150px] text-center">
-            {currentDate.toLocaleString('fr-FR', { month: 'long', year: 'numeric' })}
+            {currentDate.toLocaleString('en-US', { month: 'long', year: 'numeric' })}
           </span>
           <button onClick={() => setCurrentDate(new Date(currentDate.setMonth(currentDate.getMonth() + 1)))}><ChevronRight /></button>
         </div>
       </div>
 
-      {/* Formulaire d'ajout */}
       <div className="bg-white p-6 rounded-[2.5rem] border border-love-100 shadow-sm">
         <form onSubmit={addEvent} className="grid grid-cols-1 md:grid-cols-5 gap-4 items-end">
-          <Input label="Événement" value={newEvent.title} onChange={e => setNewEvent({...newEvent, title: e.target.value})} placeholder="Dîner, Vol, RDV..." />
+          <Input label="Event" value={newEvent.title} onChange={e => setNewEvent({...newEvent, title: e.target.value})} placeholder="Dinner, Flight, Date..." />
           <Input type="date" label="Date" value={newEvent.date} onChange={e => setNewEvent({...newEvent, date: e.target.value})} />
-          <Input type="time" label="Heure" value={newEvent.time} onChange={e => setNewEvent({...newEvent, time: e.target.value})} />
+          <Input type="time" label="Time" value={newEvent.time} onChange={e => setNewEvent({...newEvent, time: e.target.value})} />
           <div className="space-y-1 text-left">
-            <label className="text-sm font-medium text-gray-700 ml-1">Pour qui ?</label>
+            <label className="text-sm font-medium text-gray-700 ml-1">For whom?</label>
             <select 
               className="w-full p-2.5 bg-warm-cream/20 border border-warm-beige rounded-xl focus:ring-2 focus:ring-love-200 outline-none"
               value={newEvent.owner} 
@@ -118,18 +116,16 @@ const Agenda = () => {
               <option value="april">April</option>
             </select>
           </div>
-          <Button type="submit" className="w-full">Ajouter</Button>
+          <Button type="submit" className="w-full">Add Event</Button>
         </form>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
         {/* Elias Section */}
         <div className="space-y-4">
-          <div className="flex items-center justify-between">
-            <h4 className="font-serif text-xl text-love-800">Calendrier d'Elias</h4>
-          </div>
+          <h4 className="font-serif text-xl text-love-800">Elias's Schedule</h4>
           <div className="grid grid-cols-7 gap-1 text-xs font-bold text-gray-400 mb-2 px-2">
-            {['Lun','Mar','Mer','Jeu','Ven','Sam','Dim'].map(d => <div key={d} className="text-center">{d}</div>)}
+            {['Mon','Tue','Wed','Thu','Fri','Sat','Sun'].map(d => <div key={d} className="text-center">{d}</div>)}
           </div>
           <div className="grid grid-cols-7 gap-2">
             {matrix.map((date, idx) => (
@@ -140,11 +136,9 @@ const Agenda = () => {
 
         {/* April Section */}
         <div className="space-y-4">
-          <div className="flex items-center justify-between">
-            <h4 className="font-serif text-xl text-love-800">Calendrier d'April</h4>
-          </div>
+          <h4 className="font-serif text-xl text-love-800">April's Schedule</h4>
           <div className="grid grid-cols-7 gap-1 text-xs font-bold text-gray-400 mb-2 px-2">
-            {['Lun','Mar','Mer','Jeu','Ven','Sam','Dim'].map(d => <div key={d} className="text-center">{d}</div>)}
+            {['Mon','Tue','Wed','Thu','Fri','Sat','Sun'].map(d => <div key={d} className="text-center">{d}</div>)}
           </div>
           <div className="grid grid-cols-7 gap-2">
             {matrix.map((date, idx) => (
@@ -154,9 +148,9 @@ const Agenda = () => {
         </div>
       </div>
       
-      {/* Liste Récapitulative */}
+      {/* Upcoming list */}
       <div className="mt-10 bg-white p-6 rounded-3xl border border-warm-beige">
-        <h4 className="font-serif text-xl text-love-900 mb-4">Prochainement</h4>
+        <h4 className="font-serif text-xl text-love-900 mb-4">Upcoming</h4>
         <div className="grid md:grid-cols-2 gap-4">
           {events.sort((a,b) => new Date(a.date) - new Date(b.date)).slice(0, 6).map(e => (
             <div key={e.id} className="flex items-center justify-between p-3 bg-warm-cream/10 rounded-xl border border-warm-cream">
@@ -164,7 +158,7 @@ const Agenda = () => {
                 <div className={clsx("w-2 h-2 rounded-full", e.owner === 'elias' ? "bg-love-400" : "bg-blue-400")} />
                 <div>
                   <p className="font-medium text-gray-800">{e.title}</p>
-                  <p className="text-xs text-gray-500">{new Date(e.date).toLocaleDateString('fr-FR')} {e.time}</p>
+                  <p className="text-xs text-gray-500">{e.date} {e.time}</p>
                 </div>
               </div>
               <button onClick={() => removeEvent(e.id)} className="text-gray-300 hover:text-red-500">
