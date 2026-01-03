@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { db } from '../firebase'; 
+import { db } from '../firebase';
 import { ref, onValue, push, remove, update } from 'firebase/database';
 import { motion } from 'framer-motion';
 import { Armchair, Bed, Flower2, Lamp, Tv, Box, Trash2, RotateCcw } from 'lucide-react';
@@ -15,53 +15,55 @@ const Furniture = [
 ];
 
 const VirtualHome = () => {
-  const [items, setItems] = useState(() => {
-    const saved = localStorage.getItem('love_space_home');
-    return saved ? JSON.parse(saved) : [];
-  });
+  const [items, setItems] = useState([]);
   const constraintsRef = useRef(null);
 
+  // Charger les meubles depuis Firebase
   useEffect(() => {
-    localStorage.setItem('love_space_home', JSON.stringify(items));
-  }, [items]);
+    const homeRef = ref(db, 'virtual_home');
+    return onValue(homeRef, (snapshot) => {
+      const data = snapshot.val();
+      if (data) {
+        const list = Object.keys(data).map(key => ({
+          id: key,
+          ...data[key]
+        }));
+        setItems(list);
+      } else {
+        setItems([]);
+      }
+    });
+  }, []);
 
   const addItem = (type) => {
-    setItems([
-      ...items,
-      { 
-        id: Date.now(), 
-        type, 
-        x: 50 + Math.random() * 100, 
-        y: 50 + Math.random() * 100 
-      }
-    ]);
+    const newItem = {
+      type,
+      x: 50 + Math.random() * 100,
+      y: 50 + Math.random() * 100
+    };
+    push(ref(db, 'virtual_home'), newItem);
   };
 
   const removeItem = (id) => {
-    setItems(items.filter(item => item.id !== id));
+    remove(ref(db, `virtual_home/${id}`));
   };
 
-  const updatePosition = (id, info) => {
-    // We can't easily get exact x/y relative to container without more math, 
-    // but for persistence we need to. 
-    // For this MVP, we won't persist exact drag position on reload perfectly 
-    // unless we track it carefully. 
-    // Let's simplified: We won't update state on drag end for now, 
-    // just let it be visual in session. 
-    // OR we try to track it.
-    // Let's just persist "existence" for now, and positions reset or stay relative if we used proper layout.
-    // Framer motion drag is absolute.
+  const resetHome = () => {
+    if (window.confirm("Voulez-vous vraiment vider la maison ?")) {
+      remove(ref(db, 'virtual_home'));
+    }
   };
-  
-  // Better approach for persistence:
-  // Use x/y in style, update onDragEnd.
+
+  // Mettre à jour la position quand on lâche le meuble
   const handleDragEnd = (id, info) => {
-     setItems(prev => prev.map(item => {
-       if (item.id === id) {
-         return { ...item, x: item.x + info.offset.x, y: item.y + info.offset.y };
-       }
-       return item;
-     }));
+    // On calcule la nouvelle position par rapport au parent
+    const item = items.find(i => i.id === id);
+    if (item) {
+      update(ref(db, `virtual_home/${id}`), {
+        x: item.x + info.offset.x,
+        y: item.y + info.offset.y
+      });
+    }
   };
 
   return (
