@@ -1,43 +1,47 @@
 import React, { useState, useEffect } from 'react';
+import { db } from '../firebase';
+import { ref, onValue, push, remove } from 'firebase/database';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Mail, Heart, Star, Cloud, X, Plus } from 'lucide-react';
 import Button from '../components/ui/Button';
 import Input from '../components/ui/Input';
 import TextArea from '../components/ui/TextArea';
-import clsx from 'clsx';
 
-const Icons = {
-  heart: Heart,
-  star: Star,
-  cloud: Cloud,
-  mail: Mail,
-};
+const Icons = { heart: Heart, star: Star, cloud: Cloud, mail: Mail };
 
 const Letters = () => {
-  const [letters, setLetters] = useState(() => {
-    const saved = localStorage.getItem('love_space_letters');
-    return saved ? JSON.parse(saved) : [];
-  });
+  const [letters, setLetters] = useState([]);
   const [isComposing, setIsComposing] = useState(false);
   const [readingId, setReadingId] = useState(null);
   const [newLetter, setNewLetter] = useState({ subject: '', content: '', icon: 'heart' });
 
   useEffect(() => {
-    localStorage.setItem('love_space_letters', JSON.stringify(letters));
-  }, [letters]);
+    const lettersRef = ref(db, 'letters');
+    return onValue(lettersRef, (snapshot) => {
+      const data = snapshot.val();
+      if (data) {
+        const list = Object.keys(data).map(key => ({ id: key, ...data[key] }));
+        setLetters(list.reverse()); // Les plus récentes en premier
+      } else { setLetters([]); }
+    });
+  }, []);
 
   const handleSend = (e) => {
     e.preventDefault();
     if (!newLetter.subject.trim() || !newLetter.content.trim()) return;
-
-    setLetters([{ ...newLetter, id: Date.now(), date: new Date().toLocaleDateString() }, ...letters]);
+    push(ref(db, 'letters'), { 
+      ...newLetter, 
+      date: new Date().toLocaleDateString('fr-FR') 
+    });
     setNewLetter({ subject: '', content: '', icon: 'heart' });
     setIsComposing(false);
   };
 
   const deleteLetter = (id) => {
-    setLetters(letters.filter(l => l.id !== id));
-    if (readingId === id) setReadingId(null);
+    if(window.confirm("Supprimer cette lettre ?")) {
+      remove(ref(db, `letters/${id}`));
+      setReadingId(null);
+    }
   };
 
   return (
