@@ -16,7 +16,9 @@ function getMonthMatrix(current) {
   const startWeekday = start.getDay();
   const daysInMonth = end.getDate();
   const days = [];
-  for (let i = 0; i < (startWeekday === 0 ? 6 : startWeekday - 1); i++) days.push(null);
+  // Ajustement pour que la semaine commence le Lundi (Lundi = 1, Dimanche = 0)
+  const offset = startWeekday === 0 ? 6 : startWeekday - 1;
+  for (let i = 0; i < offset; i++) days.push(null);
   for (let d = 1; d <= daysInMonth; d++) days.push(new Date(current.getFullYear(), current.getMonth(), d));
   while (days.length % 7 !== 0) days.push(null);
   return days;
@@ -25,14 +27,22 @@ function getMonthMatrix(current) {
 const DayCell = ({ date, events, color }) => {
   if (!date) return <div className="h-24 bg-gray-50/30 rounded-xl" />;
   const isToday = new Date().toDateString() === date.toDateString();
-  const dayEvents = events.filter(e => e.date === date.toISOString().split('T')[0]);
+  
+  // Filtrer les événements pour ce jour précis
+  const dateStr = date.toISOString().split('T')[0];
+  const dayEvents = events.filter(e => e.date === dateStr);
 
   return (
-    <div className={clsx("h-24 p-2 rounded-xl border border-warm-beige transition-all overflow-hidden", isToday ? "bg-love-50 border-love-100" : "bg-white")}>
-      <span className={clsx("text-xs font-bold", isToday ? "text-love-500" : "text-gray-400")}>{date.getDate()}</span>
+    <div className={clsx(
+      "h-24 p-2 rounded-xl border border-warm-beige transition-all overflow-hidden",
+      isToday ? "bg-love-50 border-love-100 ring-1 ring-love-200" : "bg-white"
+    )}>
+      <span className={clsx("text-xs font-bold", isToday ? "text-love-500" : "text-gray-400")}>
+        {date.getDate()}
+      </span>
       <div className="mt-1 space-y-1">
-        {dayEvents.map((e, idx) => (
-          <div key={idx} className={clsx("text-[10px] px-1.5 py-0.5 rounded-md truncate shadow-sm", color)}>
+        {dayEvents.map((e) => (
+          <div key={e.id} className={clsx("text-[9px] px-1.5 py-0.5 rounded-md truncate shadow-sm font-medium", color)}>
             {e.title}
           </div>
         ))}
@@ -63,169 +73,105 @@ const Agenda = () => {
     e.preventDefault();
     if (!newEvent.title || !newEvent.date) return;
     push(ref(db, 'events'), newEvent);
-    setNewEvent({ title: '', date: '', time: '', owner: newEvent.owner });
+    setNewEvent({ ...newEvent, title: '', time: '' }); // On garde la date et le owner pour aller plus vite
   };
 
   const removeEvent = (id) => {
-    remove(ref(db, `events/${id}`));
+    if(window.confirm("Supprimer cet événement ?")) {
+      remove(ref(db, `events/${id}`));
+    }
   };
 
   const eliasEvents = events.filter(e => e.owner === 'elias');
   const aprilEvents = events.filter(e => e.owner === 'april');
   const matrix = getMonthMatrix(currentDate);
-  return (
-    <div className="space-y-8">
-      <header className="text-center space-y-2">
-        <h2 className="text-3xl font-serif text-love-800">Agenda</h2>
-        <p className="text-gray-600">Two separate agendas for Elias and April</p>
-      </header>
 
-      {/* Add Event Form */}
-      <motion.form
-        initial={{ opacity: 0, y: -10 }}
-        animate={{ opacity: 1, y: 0 }}
-        className="bg-white p-6 rounded-2xl shadow-sm border border-warm-beige space-y-4"
-        onSubmit={addEvent}
-      >
-        <div className="flex flex-wrap gap-3 items-center">
-          <div className="flex items-center gap-2">
-            <User size={18} className="text-love-500" />
-            <select
-              value={newEvent.who}
-              onChange={e => setNewEvent({ ...newEvent, who: e.target.value })}
-              className="px-3 py-2 rounded-lg border border-warm-sand bg-white/60"
+  return (
+    <div className="max-w-6xl mx-auto p-4 space-y-8 pb-20 font-sans">
+      <div className="flex flex-col md:flex-row items-center justify-between gap-4">
+        <h2 className="text-3xl font-serif text-love-900 font-bold flex items-center gap-3">
+          <CalendarIcon size={32} /> Notre Agenda
+        </h2>
+        <div className="flex items-center gap-4 bg-white px-4 py-2 rounded-2xl shadow-sm border border-warm-beige">
+          <button onClick={() => setCurrentDate(new Date(currentDate.setMonth(currentDate.getMonth() - 1)))}><ChevronLeft /></button>
+          <span className="font-serif text-lg min-w-[150px] text-center">
+            {currentDate.toLocaleString('fr-FR', { month: 'long', year: 'numeric' })}
+          </span>
+          <button onClick={() => setCurrentDate(new Date(currentDate.setMonth(currentDate.getMonth() + 1)))}><ChevronRight /></button>
+        </div>
+      </div>
+
+      {/* Formulaire d'ajout */}
+      <div className="bg-white p-6 rounded-[2.5rem] border border-love-100 shadow-sm">
+        <form onSubmit={addEvent} className="grid grid-cols-1 md:grid-cols-5 gap-4 items-end">
+          <Input label="Événement" value={newEvent.title} onChange={e => setNewEvent({...newEvent, title: e.target.value})} placeholder="Dîner, Vol, RDV..." />
+          <Input type="date" label="Date" value={newEvent.date} onChange={e => setNewEvent({...newEvent, date: e.target.value})} />
+          <Input type="time" label="Heure" value={newEvent.time} onChange={e => setNewEvent({...newEvent, time: e.target.value})} />
+          <div className="space-y-1 text-left">
+            <label className="text-sm font-medium text-gray-700 ml-1">Pour qui ?</label>
+            <select 
+              className="w-full p-2.5 bg-warm-cream/20 border border-warm-beige rounded-xl focus:ring-2 focus:ring-love-200 outline-none"
+              value={newEvent.owner} 
+              onChange={e => setNewEvent({...newEvent, owner: e.target.value})}
             >
               <option value="elias">Elias</option>
               <option value="april">April</option>
             </select>
           </div>
-          <Input
-            placeholder="Event title"
-            value={newEvent.title}
-            onChange={e => setNewEvent({ ...newEvent, title: e.target.value })}
-            className="flex-1 min-w-[150px]"
-          />
-          <Input
-            type="date"
-            value={newEvent.date}
-            onChange={e => setNewEvent({ ...newEvent, date: e.target.value })}
-          />
-          <Input
-            type="time"
-            value={newEvent.time}
-            onChange={e => setNewEvent({ ...newEvent, time: e.target.value })}
-          />
-        </div>
-        <TextArea
-          placeholder="Notes (optional)"
-          value={newEvent.notes}
-          onChange={e => setNewEvent({ ...newEvent, notes: e.target.value })}
-        />
-        <div className="flex justify-end">
-          <Button type="submit">Add</Button>
-        </div>
-      </motion.form>
-
-      {/* Month Navigation */}
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-3">
-          <button
-            onClick={() => setCurrentMonth(new Date(currentMonth.getFullYear(), currentMonth.getMonth() - 1, 1))}
-            className="p-2 rounded-full hover:bg-love-50 text-love-600"
-            aria-label="Previous month"
-          >
-            <ChevronLeft />
-          </button>
-          <div className="flex items-center gap-2">
-            <CalendarIcon className="text-love-500" />
-            <h3 className="font-serif text-xl text-love-800">{monthLabel}</h3>
-          </div>
-          <button
-            onClick={() => setCurrentMonth(new Date(currentMonth.getFullYear(), currentMonth.getMonth() + 1, 1))}
-            className="p-2 rounded-full hover:bg-love-50 text-love-600"
-            aria-label="Next month"
-          >
-            <ChevronRight />
-          </button>
-        </div>
+          <Button type="submit" className="w-full">Ajouter</Button>
+        </form>
       </div>
 
-      {/* Two Agendas Side-by-Side */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        {/* Elias */}
-        <div className="bg-white rounded-2xl shadow-sm border border-warm-beige">
-          <div className="p-4 border-b border-warm-beige flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              <User className="text-love-500" />
-              <h4 className="font-serif text-lg text-love-800">Agenda Elias</h4>
-            </div>
-            <span className="text-xs text-gray-500">{eliasEvents.length} événements</span>
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+        {/* Elias Section */}
+        <div className="space-y-4">
+          <div className="flex items-center justify-between">
+            <h4 className="font-serif text-xl text-love-800">Calendrier d'Elias</h4>
           </div>
-          <div className="p-4">
-            <div className="grid grid-cols-7 gap-2 text-xs text-gray-500 mb-2">
-              {['Mon','Tue','Wed','Thu','Fri','Sat','Sun'].map(d => <div key={d} className="text-center">{d}</div>)}
-            </div>
-            <div className="grid grid-cols-7 gap-2">
-              {matrix.map((date, idx) => (
-                <DayCell key={idx} date={date} events={eliasEvents} color="bg-love-100 text-love-600" who="elias" onRemove={removeEvent} />
-              ))}
-            </div>
+          <div className="grid grid-cols-7 gap-1 text-xs font-bold text-gray-400 mb-2 px-2">
+            {['Lun','Mar','Mer','Jeu','Ven','Sam','Dim'].map(d => <div key={d} className="text-center">{d}</div>)}
           </div>
-          {/* Elias upcoming list */}
-          <div className="p-4 border-t border-warm-beige">
-            <h5 className="text-sm text-gray-500 mb-2">Upcoming</h5>
-            <div className="space-y-2 max-h-40 overflow-y-auto">
-              {eliasEvents.length === 0 && <p className="text-xs text-gray-400 italic">No events</p>}
-              {eliasEvents.map(e => (
-                <div key={e.id} className="flex items-center justify-between text-sm bg-warm-cream/60 p-2 rounded-lg">
-                  <div className="flex items-center gap-2">
-                    <Clock className="text-love-500" size={16} />
-                    <span className="text-gray-700">{e.title}</span>
-                    <span className="text-gray-400">{e.date} {e.time}</span>
-                  </div>
-                  <button onClick={() => removeEvent('elias', e.id)} className="text-gray-300 hover:text-red-400">&times;</button>
-                </div>
-              ))}
-            </div>
+          <div className="grid grid-cols-7 gap-2">
+            {matrix.map((date, idx) => (
+              <DayCell key={idx} date={date} events={eliasEvents} color="bg-love-100 text-love-600" />
+            ))}
           </div>
         </div>
 
-        {/* April */}
-        <div className="bg-white rounded-2xl shadow-sm border border-warm-beige">
-          <div className="p-4 border-b border-warm-beige flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              <User className="text-love-500" />
-              <h4 className="font-serif text-lg text-love-800">Agenda April</h4>
-            </div>
-            <span className="text-xs text-gray-500">{aprilEvents.length} événements</span>
+        {/* April Section */}
+        <div className="space-y-4">
+          <div className="flex items-center justify-between">
+            <h4 className="font-serif text-xl text-love-800">Calendrier d'April</h4>
           </div>
-          <div className="p-4">
-            <div className="grid grid-cols-7 gap-2 text-xs text-gray-500 mb-2">
-              {['Mon','Tue','Wed','Thu','Fri','Sat','Sun'].map(d => <div key={d} className="text-center">{d}</div>)}
-            </div>
-            <div className="grid grid-cols-7 gap-2">
-              {matrix.map((date, idx) => (
-                <DayCell key={idx} date={date} events={aprilEvents} color="bg-blue-100 text-blue-600" who="april" onRemove={removeEvent} />
-              ))}
-            </div>
+          <div className="grid grid-cols-7 gap-1 text-xs font-bold text-gray-400 mb-2 px-2">
+            {['Lun','Mar','Mer','Jeu','Ven','Sam','Dim'].map(d => <div key={d} className="text-center">{d}</div>)}
           </div>
-          {/* April upcoming list */}
-          <div className="p-4 border-t border-warm-beige">
-            <h5 className="text-sm text-gray-500 mb-2">Upcoming</h5>
-            <div className="space-y-2 max-h-40 overflow-y-auto">
-              {aprilEvents.length === 0 && <p className="text-xs text-gray-400 italic">No events</p>}
-              {aprilEvents.map(e => (
-                <div key={e.id} className="flex items-center justify-between text-sm bg-warm-cream/60 p-2 rounded-lg">
-                  <div className="flex items-center gap-2">
-                    <Clock className="text-love-500" size={16} />
-                    <span className="text-gray-700">{e.title}</span>
-                    <span className="text-gray-400">{e.date} {e.time}</span>
-                  </div>
-                  <button onClick={() => removeEvent('april', e.id)} className="text-gray-300 hover:text-red-400">&times;</button>
+          <div className="grid grid-cols-7 gap-2">
+            {matrix.map((date, idx) => (
+              <DayCell key={idx} date={date} events={aprilEvents} color="bg-blue-100 text-blue-600" />
+            ))}
+          </div>
+        </div>
+      </div>
+      
+      {/* Liste Récapitulative */}
+      <div className="mt-10 bg-white p-6 rounded-3xl border border-warm-beige">
+        <h4 className="font-serif text-xl text-love-900 mb-4">Prochainement</h4>
+        <div className="grid md:grid-cols-2 gap-4">
+          {events.sort((a,b) => new Date(a.date) - new Date(b.date)).slice(0, 6).map(e => (
+            <div key={e.id} className="flex items-center justify-between p-3 bg-warm-cream/10 rounded-xl border border-warm-cream">
+              <div className="flex items-center gap-3">
+                <div className={clsx("w-2 h-2 rounded-full", e.owner === 'elias' ? "bg-love-400" : "bg-blue-400")} />
+                <div>
+                  <p className="font-medium text-gray-800">{e.title}</p>
+                  <p className="text-xs text-gray-500">{new Date(e.date).toLocaleDateString('fr-FR')} {e.time}</p>
                 </div>
-              ))}
+              </div>
+              <button onClick={() => removeEvent(e.id)} className="text-gray-300 hover:text-red-500">
+                <Trash2 size={16} />
+              </button>
             </div>
-          </div>
+          ))}
         </div>
       </div>
     </div>
