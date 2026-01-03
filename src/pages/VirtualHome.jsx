@@ -1,4 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
+import { db } from '../firebase'; 
+import { ref, onValue, push, remove, update } from 'firebase/database';
 import { motion } from 'framer-motion';
 import { Armchair, Bed, Flower2, Lamp, Tv, Box, Trash2, RotateCcw } from 'lucide-react';
 import Button from '../components/ui/Button';
