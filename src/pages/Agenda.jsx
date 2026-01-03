@@ -1,15 +1,11 @@
 import React, { useState, useEffect } from 'react';
+import { db } from '../firebase';
+import { ref, onValue, push, remove } from 'firebase/database';
 import { motion } from 'framer-motion';
-import { Calendar as CalendarIcon, Clock, User, ChevronLeft, ChevronRight } from 'lucide-react';
+import { Calendar as CalendarIcon, Clock, ChevronLeft, ChevronRight, Trash2 } from 'lucide-react';
 import Button from '../components/ui/Button';
 import Input from '../components/ui/Input';
-import TextArea from '../components/ui/TextArea';
 import clsx from 'clsx';
-
-const STORAGE_KEYS = {
-  elias: 'love_space_agenda_elias',
-  april: 'love_space_agenda_april',
-};
 
 const startOfMonth = (date) => new Date(date.getFullYear(), date.getMonth(), 1);
 const endOfMonth = (date) => new Date(date.getFullYear(), date.getMonth() + 1, 0);
@@ -17,39 +13,27 @@ const endOfMonth = (date) => new Date(date.getFullYear(), date.getMonth() + 1, 0
 function getMonthMatrix(current) {
   const start = startOfMonth(current);
   const end = endOfMonth(current);
-  const startWeekday = start.getDay(); // 0=Sunday
+  const startWeekday = start.getDay();
   const daysInMonth = end.getDate();
-
   const days = [];
-  // Fill leading blanks
-  for (let i = 0; i < (startWeekday === 0 ? 6 : startWeekday - 1); i++) {
-    days.push(null);
-  }
-  for (let d = 1; d <= daysInMonth; d++) {
-    days.push(new Date(current.getFullYear(), current.getMonth(), d));
-  }
-  // Ensure full weeks
+  for (let i = 0; i < (startWeekday === 0 ? 6 : startWeekday - 1); i++) days.push(null);
+  for (let d = 1; d <= daysInMonth; d++) days.push(new Date(current.getFullYear(), current.getMonth(), d));
   while (days.length % 7 !== 0) days.push(null);
   return days;
 }
 
-const DayCell = ({ date, events, color, who, onRemove }) => {
-  const day = date ? date.getDate() : '';
-  const dateKey = date ? date.toISOString().slice(0,10) : null;
-  const todaysEvents = dateKey ? (events.filter(e => e.date === dateKey)) : [];
+const DayCell = ({ date, events, color }) => {
+  if (!date) return <div className="h-24 bg-gray-50/30 rounded-xl" />;
+  const isToday = new Date().toDateString() === date.toDateString();
+  const dayEvents = events.filter(e => e.date === date.toISOString().split('T')[0]);
+
   return (
-    <div className="min-h-[80px] p-2 rounded-lg border border-warm-beige bg-white">
-      <div className="flex items-center justify-between text-xs text-gray-500 mb-1">
-        <span className="font-medium">{day}</span>
-        {todaysEvents.length > 0 && (
-          <span className={clsx("px-2 py-0.5 rounded-full text-[10px]", color)}>{todaysEvents.length} evt</span>
-        )}
-      </div>
-      <div className="space-y-1 max-h-[60px] overflow-y-auto">
-        {todaysEvents.map((e) => (
-          <div key={e.id} className="text-[11px] truncate flex items-center justify-between gap-1">
-            <span className="truncate"><span className="text-gray-400">{e.time}</span> <span className="text-gray-700">{e.title}</span></span>
-            <button onClick={() => onRemove(who, e.id)} className="text-gray-300 hover:text-red-400">&times;</button>
+    <div className={clsx("h-24 p-2 rounded-xl border border-warm-beige transition-all overflow-hidden", isToday ? "bg-love-50 border-love-100" : "bg-white")}>
+      <span className={clsx("text-xs font-bold", isToday ? "text-love-500" : "text-gray-400")}>{date.getDate()}</span>
+      <div className="mt-1 space-y-1">
+        {dayEvents.map((e, idx) => (
+          <div key={idx} className={clsx("text-[10px] px-1.5 py-0.5 rounded-md truncate shadow-sm", color)}>
+            {e.title}
           </div>
         ))}
       </div>
@@ -58,44 +42,37 @@ const DayCell = ({ date, events, color, who, onRemove }) => {
 };
 
 const Agenda = () => {
-  const [currentMonth, setCurrentMonth] = useState(() => new Date());
-  const [eliasEvents, setEliasEvents] = useState(() => {
-    const saved = localStorage.getItem(STORAGE_KEYS.elias);
-    return saved ? JSON.parse(saved) : [];
-  });
-  const [aprilEvents, setAprilEvents] = useState(() => {
-    const saved = localStorage.getItem(STORAGE_KEYS.april);
-    return saved ? JSON.parse(saved) : [];
-  });
-  const [newEvent, setNewEvent] = useState({ who: 'elias', title: '', date: '', time: '', notes: '' });
+  const [currentDate, setCurrentDate] = useState(new Date());
+  const [events, setEvents] = useState([]);
+  const [newEvent, setNewEvent] = useState({ title: '', date: '', time: '', owner: 'elias' });
 
   useEffect(() => {
-    localStorage.setItem(STORAGE_KEYS.elias, JSON.stringify(eliasEvents));
-  }, [eliasEvents]);
-  useEffect(() => {
-    localStorage.setItem(STORAGE_KEYS.april, JSON.stringify(aprilEvents));
-  }, [aprilEvents]);
-
-  const monthLabel = currentMonth.toLocaleString(undefined, { month: 'long', year: 'numeric' });
-  const matrix = getMonthMatrix(currentMonth);
+    const eventsRef = ref(db, 'events');
+    return onValue(eventsRef, (snapshot) => {
+      const data = snapshot.val();
+      if (data) {
+        const list = Object.keys(data).map(key => ({ id: key, ...data[key] }));
+        setEvents(list);
+      } else {
+        setEvents([]);
+      }
+    });
+  }, []);
 
   const addEvent = (e) => {
     e.preventDefault();
-    if (!newEvent.title.trim() || !newEvent.date) return;
-    const entry = { id: Date.now(), ...newEvent };
-    if (newEvent.who === 'elias') {
-      setEliasEvents([...eliasEvents, entry].sort((a,b) => (a.date+a.time).localeCompare(b.date+b.time)));
-    } else {
-      setAprilEvents([...aprilEvents, entry].sort((a,b) => (a.date+a.time).localeCompare(b.date+b.time)));
-    }
-    setNewEvent({ who: newEvent.who, title: '', date: '', time: '', notes: '' });
+    if (!newEvent.title || !newEvent.date) return;
+    push(ref(db, 'events'), newEvent);
+    setNewEvent({ title: '', date: '', time: '', owner: newEvent.owner });
   };
 
-  const removeEvent = (who, id) => {
-    if (who === 'elias') setEliasEvents(eliasEvents.filter(e => e.id !== id));
-    else setAprilEvents(aprilEvents.filter(e => e.id !== id));
+  const removeEvent = (id) => {
+    remove(ref(db, `events/${id}`));
   };
 
+  const eliasEvents = events.filter(e => e.owner === 'elias');
+  const aprilEvents = events.filter(e => e.owner === 'april');
+  const matrix = getMonthMatrix(currentDate);
   return (
     <div className="space-y-8">
       <header className="text-center space-y-2">
