@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { db } from '../firebase';
 import { ref, onValue, push, remove } from 'firebase/database';
 import { motion } from 'framer-motion';
-import { Calendar as CalendarIcon, Clock, ChevronLeft, ChevronRight, Trash2 } from 'lucide-react';
+import { Calendar as CalendarIcon, ChevronLeft, ChevronRight, Trash2 } from 'lucide-react';
 import Button from '../components/ui/Button';
 import Input from '../components/ui/Input';
 import clsx from 'clsx';
@@ -16,7 +16,7 @@ function getMonthMatrix(current) {
   const startWeekday = start.getDay();
   const daysInMonth = end.getDate();
   const days = [];
-  // Adjust for week starting on Monday (Monday = 1, Sunday = 0)
+  // Adjust for week starting on Monday
   const offset = startWeekday === 0 ? 6 : startWeekday - 1;
   for (let i = 0; i < offset; i++) days.push(null);
   for (let d = 1; d <= daysInMonth; d++) days.push(new Date(current.getFullYear(), current.getMonth(), d));
@@ -27,7 +27,6 @@ function getMonthMatrix(current) {
 const DayCell = ({ date, events, color }) => {
   if (!date) return <div className="h-24 bg-gray-50/30 rounded-xl" />;
   const isToday = new Date().toDateString() === date.toDateString();
-  
   const dateStr = date.toISOString().split('T')[0];
   const dayEvents = events.filter(e => e.date === dateStr);
 
@@ -101,8 +100,9 @@ const Agenda = () => {
       </div>
 
       <div className="bg-white p-6 rounded-[2.5rem] border border-love-100 shadow-sm">
-        <form onSubmit={addEvent} className="grid grid-cols-1 md:grid-cols-5 gap-4 items-end">
-          <Input label="Event" value={newEvent.title} onChange={e => setNewEvent({...newEvent, title: e.target.value})} placeholder="Dinner, Flight, Date..." />
+        {/* Changement de grid-cols-5 à grid-cols-4 car on a enlevé l'heure */}
+        <form onSubmit={addEvent} className="grid grid-cols-1 md:grid-cols-4 gap-4 items-end">
+          <Input label="Event" value={newEvent.title} onChange={e => setNewEvent({...newEvent, title: e.target.value})} placeholder="Dinner, Flight..." />
           <Input type="date" label="Date" value={newEvent.date} onChange={e => setNewEvent({...newEvent, date: e.target.value})} />
           <div className="space-y-1 text-left">
             <label className="text-sm font-medium text-gray-700 ml-1">For whom?</label>
@@ -120,7 +120,6 @@ const Agenda = () => {
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-        {/* Elias Section */}
         <div className="space-y-4">
           <h4 className="font-serif text-xl text-love-800">Elias's Schedule</h4>
           <div className="grid grid-cols-7 gap-1 text-xs font-bold text-gray-400 mb-2 px-2">
@@ -133,7 +132,6 @@ const Agenda = () => {
           </div>
         </div>
 
-        {/* April Section */}
         <div className="space-y-4">
           <h4 className="font-serif text-xl text-love-800">April's Schedule</h4>
           <div className="grid grid-cols-7 gap-1 text-xs font-bold text-gray-400 mb-2 px-2">
@@ -147,7 +145,6 @@ const Agenda = () => {
         </div>
       </div>
       
-      {/* Upcoming list */}
       <div className="mt-10 bg-white p-6 rounded-3xl border border-warm-beige">
         <h4 className="font-serif text-xl text-love-900 mb-4">Upcoming</h4>
         <div className="grid md:grid-cols-2 gap-4">
@@ -157,7 +154,7 @@ const Agenda = () => {
                 <div className={clsx("w-2 h-2 rounded-full", e.owner === 'elias' ? "bg-love-400" : "bg-blue-400")} />
                 <div>
                   <p className="font-medium text-gray-800">{e.title}</p>
-                  <p className="text-xs text-gray-500">{e.date}}</p>
+                  <p className="text-xs text-gray-500">{e.date}</p>
                 </div>
               </div>
               <button onClick={() => removeEvent(e.id)} className="text-gray-300 hover:text-red-500">
