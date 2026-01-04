@@ -53,7 +53,7 @@ const DayCell = ({ date, events, color }) => {
 const Agenda = () => {
   const [currentDate, setCurrentDate] = useState(new Date());
   const [events, setEvents] = useState([]);
-  const [newEvent, setNewEvent] = useState({ title: '', date: '', time: '', owner: 'elias' });
+  const [newEvent, setNewEvent] = useState({ title: '', date: '', owner: 'elias' });
 
   useEffect(() => {
     const eventsRef = ref(db, 'events');
