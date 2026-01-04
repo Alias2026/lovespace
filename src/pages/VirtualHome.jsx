@@ -7,7 +7,7 @@ import {
   Armchair, Bed, Flower2, Lamp, Tv, Box, Trash2, RotateCcw, 
   Square, DoorOpen, Bath, Refrigerator, Flame, Layout, 
   RotateCw, Construction, Maximize2, Minimize2, Layers, Monitor, 
-  Cat, Dog, Target, Window as WindowIcon 
+  Cat, Dog, Target, AppWindow as WindowIcon 
 } from 'lucide-react';
 import Button from '../components/ui/Button';
 
