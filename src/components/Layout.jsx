@@ -9,16 +9,16 @@ const NavItem = ({ to, icon: Icon, label }) => {
   const isActive = location.pathname === to;
 
   return (
-    <Link to={to} className="relative group flex flex-col items-center p-2">
+    <Link to={to} className="relative group flex flex-col items-center p-1 min-w-[50px]">
       <div className={clsx(
-        "p-3 rounded-full transition-all duration-300",
+        "p-2 rounded-full transition-all duration-300",
         isActive ? "bg-love-100 text-love-600" : "text-gray-500 hover:text-love-400 hover:bg-love-50"
       )}>
-        <Icon size={24} />
+        <Icon size={20} className="md:size-6" />
       </div>
       <span className={clsx(
-        "text-xs mt-1 font-medium transition-colors duration-300",
-        isActive ? "text-love-600" : "text-gray-400 group-hover:text-love-400"
+        "text-[10px] mt-1 font-medium transition-colors duration-300",
+        isActive ? "text-love-600" : "text-gray-400"
       )}>
         {label}
       </span>
@@ -55,8 +55,7 @@ const Layout = ({ children }) => {
         </div>
       </header>
 
-      {/* AJOUT DE pb-28 ICI : c'est l'espace pour le menu mobile */}
-      <main className="flex-grow container mx-auto px-4 py-8 pb-28 max-w-4xl overflow-y-auto">
+      <main className="flex-grow container mx-auto px-4 py-8 pb-32 max-w-4xl overflow-y-auto">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
@@ -66,22 +65,19 @@ const Layout = ({ children }) => {
         </motion.div>
       </main>
 
-{/* Menu mobile fixe corrigé */}
-<nav className="md:hidden fixed bottom-0 left-0 right-0 bg-white/95 backdrop-blur-sm border-t border-warm-beige z-50 shadow-[0_-4px_10px_rgba(0,0,0,0.05)]">
-  {/* On centre le contenu et on ajoute un espace fixe (gap-2 ou gap-1) entre chaque onglet */}
-  {/* Menu mobile fixe et centré pour décoller des bords */}
-<nav className="md:hidden fixed bottom-4 left-0 right-0 z-50 px-4">
-  <div className="max-w-md mx-auto bg-white/95 backdrop-blur-sm border border-warm-beige rounded-2xl shadow-lg">
-    <div className="flex justify-around items-center p-2">
-      <NavItem to="/" icon={Heart} label="Home" />
-      <NavItem to="/wishlist" icon={Plane} label="Travel" />
-      <NavItem to="/letters" icon={Mail} label="Letters" />
-      <NavItem to="/home" icon={Home} label="Home" />
-      <NavItem to="/goals" icon={Target} label="Goals" />
-      <NavItem to="/agenda" icon={Calendar} label="Agenda" />
-    </div>
-  </div>
-</nav>
+      {/* MENU MOBILE CORRIGÉ : UNE SEULE BALISE NAV */}
+      <nav className="md:hidden fixed bottom-4 left-0 right-0 z-50 px-4">
+        <div className="max-w-md mx-auto bg-white/95 backdrop-blur-sm border border-warm-beige rounded-2xl shadow-lg border-t border-warm-beige">
+          <div className="flex justify-around items-center p-2">
+            <NavItem to="/" icon={Heart} label="Home" />
+            <NavItem to="/wishlist" icon={Plane} label="Travel" />
+            <NavItem to="/letters" icon={Mail} label="Letters" />
+            <NavItem to="/home" icon={Home} label="Home" />
+            <NavItem to="/goals" icon={Target} label="Goals" />
+            <NavItem to="/agenda" icon={Calendar} label="Agenda" />
+          </div>
+        </div>
+      </nav>
     </div>
   );
 };
