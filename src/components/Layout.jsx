@@ -66,12 +66,12 @@ const Layout = ({ children }) => {
         </motion.div>
       </main>
 
-{/* Menu mobile fixe avec marges sur les bords */}
+{/* Menu mobile fixe corrigé */}
 <nav className="md:hidden fixed bottom-0 left-0 right-0 bg-white/95 backdrop-blur-sm border-t border-warm-beige z-50 shadow-[0_-4px_10px_rgba(0,0,0,0.05)]">
-  {/* On ajoute px-4 pour décaler les icônes des bords de l'écran */}
-  <div className="flex justify-around items-center p-2 px-4 pb-safe">
+  {/* On centre le contenu et on ajoute un espace fixe (gap-2 ou gap-1) entre chaque onglet */}
+  <div className="flex justify-center items-center gap-1 p-2 pb-safe">
     <NavItem to="/" icon={Heart} label="Home" />
-    <NavItem to="/wishlist" icon={Plane} label="Travel" />
+    <NavItem to="/wishlist" icon={Travel} label="Travel" />
     <NavItem to="/letters" icon={Mail} label="Letters" />
     <NavItem to="/home" icon={Home} label="Home" />
     <NavItem to="/goals" icon={Target} label="Goals" />
