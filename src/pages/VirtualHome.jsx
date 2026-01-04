@@ -2,22 +2,27 @@ import React, { useState, useEffect, useRef } from 'react';
 import { db } from '../firebase';
 import { ref, onValue, push, remove, update } from 'firebase/database';
 import { motion } from 'framer-motion';
+// Imports explicites et sécurisés pour Lucide-React
 import { 
   Armchair, Bed, Flower2, Lamp, Tv, Box, Trash2, RotateCcw, 
   Square, DoorOpen, Bath, Refrigerator, Flame, Layout, 
   RotateCw, Construction, Maximize2, Minimize2, Layers, Monitor, 
-  Cat, Dog, Target, Window as LucideWindow 
+  Cat, Dog, Target, Window as WindowIcon 
 } from 'lucide-react';
 import Button from '../components/ui/Button';
 
 const FurnitureList = [
+  // ARCHITECTURE
   { id: 'wall', icon: Square, label: 'Wall' },
   { id: 'door', icon: DoorOpen, label: 'Door' },
   { id: 'stairs', icon: Construction, label: 'Stairs' },
-  { id: 'window', icon: LucideWindow, label: 'Window' },
+  { id: 'window', icon: WindowIcon, label: 'Window' },
+  // ANIMAUX
   { id: 'dog', icon: Dog, label: 'Dog' },
   { id: 'cat', icon: Cat, label: 'Cat' },
+  // RANGEMENT
   { id: 'closet', icon: Layers, label: 'Closet' },
+  // SALON / CHAMBRE
   { id: 'sofa', icon: Armchair, label: 'Sofa' },
   { id: 'bed', icon: Bed, label: 'Bed' },
   { id: 'table', icon: Box, label: 'Table' },
@@ -26,8 +31,10 @@ const FurnitureList = [
   { id: 'tv', icon: Tv, label: 'TV' },
   { id: 'lamp', icon: Lamp, label: 'Lamp' },
   { id: 'plant', icon: Flower2, label: 'Plant' },
+  // SALLE DE BAIN
   { id: 'shower', icon: Bath, label: 'Shower' },
   { id: 'toilet', icon: Target, label: 'Toilet' }, 
+  // CUISINE
   { id: 'fridge', icon: Refrigerator, label: 'Fridge' },
   { id: 'stove', icon: Flame, label: 'Stove' },
 ];
@@ -73,13 +80,14 @@ const VirtualHome = () => {
       <div className="flex justify-between items-center bg-white p-6 rounded-3xl shadow-sm border border-warm-beige">
         <div>
           <h2 className="text-3xl font-serif text-love-900 font-bold">Dream Home</h2>
-          <p className="text-gray-500 italic">Resize, rotate and design together.</p>
+          <p className="text-gray-500 italic">Resize, rotate and build together.</p>
         </div>
         <Button variant="secondary" onClick={() => remove(ref(db, 'virtual_home'))}>
           <RotateCcw size={18} className="mr-2" /> Reset
         </Button>
       </div>
 
+      {/* Toolbar avec scroll horizontal pour mobile */}
       <div className="flex flex-nowrap md:flex-wrap gap-2 p-4 bg-white rounded-2xl border border-warm-beige shadow-inner overflow-x-auto">
         {FurnitureList.map((f) => (
           <button 
@@ -93,6 +101,7 @@ const VirtualHome = () => {
         ))}
       </div>
 
+      {/* Canvas */}
       <div 
         ref={constraintsRef} 
         className="relative h-[700px] bg-slate-50 rounded-[3rem] border-4 border-white shadow-xl overflow-hidden touch-none"
@@ -120,6 +129,7 @@ const VirtualHome = () => {
               className="cursor-move p-4"
             >
               <div className="relative group">
+                {/* Rendu visuel */}
                 {item.type === 'wall' ? (
                    <div className="bg-gray-800 w-32 h-4 rounded-full shadow-md" />
                 ) : (
@@ -128,11 +138,32 @@ const VirtualHome = () => {
                   </div>
                 )}
                 
+                {/* Menu au survol */}
                 <div className="absolute -top-12 left-1/2 -translate-x-1/2 flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity bg-white/95 p-1.5 rounded-full shadow-2xl border border-warm-beige z-50">
-                  <button onClick={(e) => updateItem(item.id, { scale: currentScale + 0.2 }, e)} className="p-1 hover:text-love-500"><Maximize2 size={16} /></button>
-                  <button onClick={(e) => updateItem(item.id, { scale: Math.max(0.2, currentScale - 0.2) }, e)} className="p-1 hover:text-love-500"><Minimize2 size={16} /></button>
-                  <button onClick={(e) => updateItem(item.id, { rotation: (item.rotation + 45) % 360 }, e)} className="p-1 hover:text-blue-500"><RotateCw size={16} /></button>
-                  <button onClick={(e) => { e.stopPropagation(); remove(ref(db, `virtual_home/${item.id}`)); }} className="p-1 hover:text-red-500"><Trash2 size={16} /></button>
+                  <button 
+                    onClick={(e) => updateItem(item.id, { scale: currentScale + 0.2 }, e)}
+                    className="p-1 hover:text-love-500"
+                  >
+                    <Maximize2 size={16} />
+                  </button>
+                  <button 
+                    onClick={(e) => updateItem(item.id, { scale: Math.max(0.2, currentScale - 0.2) }, e)}
+                    className="p-1 hover:text-love-500"
+                  >
+                    <Minimize2 size={16} />
+                  </button>
+                  <button 
+                    onClick={(e) => updateItem(item.id, { rotation: (item.rotation + 45) % 360 }, e)}
+                    className="p-1 hover:text-blue-500"
+                  >
+                    <RotateCw size={16} />
+                  </button>
+                  <button 
+                    onClick={(e) => { e.stopPropagation(); remove(ref(db, `virtual_home/${item.id}`)); }}
+                    className="p-1 hover:text-red-500"
+                  >
+                    <Trash2 size={16} />
+                  </button>
                 </div>
               </div>
             </motion.div>
