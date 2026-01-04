@@ -72,7 +72,7 @@ const Agenda = () => {
     e.preventDefault();
     if (!newEvent.title || !newEvent.date) return;
     push(ref(db, 'events'), newEvent);
-    setNewEvent({ ...newEvent, title: '', time: '' });
+    setNewEvent({ ...newEvent, title: '' });
   };
 
   const removeEvent = (id) => {
@@ -104,7 +104,6 @@ const Agenda = () => {
         <form onSubmit={addEvent} className="grid grid-cols-1 md:grid-cols-5 gap-4 items-end">
           <Input label="Event" value={newEvent.title} onChange={e => setNewEvent({...newEvent, title: e.target.value})} placeholder="Dinner, Flight, Date..." />
           <Input type="date" label="Date" value={newEvent.date} onChange={e => setNewEvent({...newEvent, date: e.target.value})} />
-          <Input type="time" label="Time" value={newEvent.time} onChange={e => setNewEvent({...newEvent, time: e.target.value})} />
           <div className="space-y-1 text-left">
             <label className="text-sm font-medium text-gray-700 ml-1">For whom?</label>
             <select 
@@ -158,7 +157,7 @@ const Agenda = () => {
                 <div className={clsx("w-2 h-2 rounded-full", e.owner === 'elias' ? "bg-love-400" : "bg-blue-400")} />
                 <div>
                   <p className="font-medium text-gray-800">{e.title}</p>
-                  <p className="text-xs text-gray-500">{e.date} {e.time}</p>
+                  <p className="text-xs text-gray-500">{e.date}}</p>
                 </div>
               </div>
               <button onClick={() => removeEvent(e.id)} className="text-gray-300 hover:text-red-500">
