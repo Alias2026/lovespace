@@ -89,7 +89,12 @@ const Letters = () => {
               >
                 <X size={24} />
               </button>
-              
+              <button
+  onClick={() => deleteLetter(letter.id)}
+  className="absolute top-4 left-4 text-love-200 hover:text-love-500"
+>
+  <X size={16} />
+</button>
               <h3 className="font-serif text-2xl text-love-800 mb-6 text-center">New Letter</h3>
               
               <form onSubmit={handleSend} className="space-y-4">
