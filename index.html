@@ -1,42 +1,31 @@
 <!doctype html>
+
 <html lang="en">
+
   <head>
+
     <meta charset="UTF-8" />
+
     <link rel="icon" type="image/svg+xml" href="/vite.svg" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0" />
+
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
     <title>Love Space</title>
-    
+
     <link rel="preconnect" href="https://fonts.googleapis.com">
+
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+
     <link href="https://fonts.googleapis.com/css2?family=Dancing+Script:wght@400;700&family=Lato:wght@300;400;700&family=Playfair+Display:wght@400;600;700&display=swap" rel="stylesheet">
 
-    <style>
-      /* Le CSS doit être ici ou dans un fichier .css séparé */
-      html {
-        height: -webkit-fill-available; /* Correction pour navigateurs mobiles */
-      }
-
-      body {
-        margin: 0;
-        /* Très important : on autorise le scroll et on ne fixe pas la hauteur */
-        overflow-y: auto !important; 
-        overflow-x: hidden;
-        min-height: 100vh;
-        min-height: -webkit-fill-available;
-        -webkit-overflow-scrolling: touch;
-        background-color: #fffafb; 
-      }
-
-      #root {
-        min-height: 100vh;
-        /* Ajoute une marge interne en bas pour TOUTES les pages 
-           pour que le contenu ne soit pas caché par ton menu rose */
-        padding-bottom: 100px; 
-      }
-    </style>
   </head>
+
   <body>
+
     <div id="root"></div>
+
     <script type="module" src="/src/main.jsx"></script>
+
   </body>
+
 </html>
