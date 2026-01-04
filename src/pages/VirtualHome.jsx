@@ -2,28 +2,31 @@ import React, { useState, useEffect, useRef } from 'react';
 import { db } from '../firebase';
 import { ref, onValue, push, remove, update } from 'firebase/database';
 import { motion } from 'framer-motion';
-// Nettoyage des icônes pour éviter les erreurs de build
 import { 
   Armchair, Bed, Flower2, Lamp, Tv, Box, Trash2, RotateCcw, 
   Square, DoorOpen, Bath, Refrigerator, 
-  Flame, Layout, Monitor, RotateCw
+  Flame, Layout, RotateCw, Utensils, Construction
 } from 'lucide-react';
 import Button from '../components/ui/Button';
 
+// Liste des meubles mise à jour avec les bonnes icônes
 const FurnitureList = [
   // Architecture
   { id: 'wall', icon: Square, label: 'Wall' },
   { id: 'door', icon: DoorOpen, label: 'Door' },
-  // Living Room / Bedroom
+  { id: 'stairs', icon: Construction, label: 'Stairs' }, // Icône de construction pour l'escalier
+  // Salon / Chambre
   { id: 'sofa', icon: Armchair, label: 'Sofa' },
   { id: 'bed', icon: Bed, label: 'Bed' },
   { id: 'tv', icon: Tv, label: 'TV' },
   { id: 'plant', icon: Flower2, label: 'Plant' },
   { id: 'lamp', icon: Lamp, label: 'Lamp' },
-  // Bath
+  // Salle de bain
   { id: 'shower', icon: Bath, label: 'Shower' },
-  { id: 'toilet', icon: Monitor, label: 'Toilet' },
-  // Kitchen
+  { id: 'toilet', icon: Utensils, label: 'Toilet' }, // Utensils ou Layout peut servir de base visuelle
+  // Cuisine & Repas
+  { id: 'table', icon: Box, label: 'Table' },
+  { id: 'chair', icon: Layout, label: 'Chair' },
   { id: 'fridge', icon: Refrigerator, label: 'Fridge' },
   { id: 'stove', icon: Flame, label: 'Stove' },
 ];
@@ -55,7 +58,7 @@ const VirtualHome = () => {
   };
 
   const rotateItem = (id, currentRotation, e) => {
-    e.stopPropagation(); // Empêche de déplacer en même temps qu'on tourne
+    e.stopPropagation();
     update(ref(db, `virtual_home/${id}`), {
       rotation: (currentRotation + 90) % 360
     });
@@ -78,14 +81,13 @@ const VirtualHome = () => {
       <div className="flex justify-between items-center bg-white p-6 rounded-3xl shadow-sm border border-warm-beige">
         <div>
           <h2 className="text-3xl font-serif text-love-900 font-bold">Dream Home</h2>
-          <p className="text-gray-500 italic">Design our future together.</p>
+          <p className="text-gray-500 italic">Build your world together.</p>
         </div>
         <Button variant="secondary" onClick={() => remove(ref(db, 'virtual_home'))}>
           <RotateCcw size={18} className="mr-2" /> Reset
         </Button>
       </div>
 
-      {/* Toolbar */}
       <div className="flex flex-wrap gap-2 p-4 bg-white rounded-2xl border border-warm-beige shadow-inner overflow-x-auto">
         {FurnitureList.map((f) => (
           <button 
@@ -99,7 +101,6 @@ const VirtualHome = () => {
         ))}
       </div>
 
-      {/* Canvas */}
       <div 
         ref={constraintsRef} 
         className="relative h-[650px] bg-slate-50 rounded-[3rem] border-4 border-white shadow-xl overflow-hidden touch-none"
@@ -121,12 +122,10 @@ const VirtualHome = () => {
               className="cursor-move p-4"
             >
               <div className="relative group">
-                {/* Visual for Walls vs Furniture */}
                 <div className={item.type === 'wall' ? "bg-gray-800 w-32 h-3 rounded-full" : "text-love-900"}>
                   {item.type !== 'wall' && <Icon size={item.type === 'bed' || item.type === 'sofa' ? 60 : 45} />}
                 </div>
                 
-                {/* Action Buttons (Visible on Hover) */}
                 <div className="absolute -top-8 left-1/2 -translate-x-1/2 flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
                   <button 
                     onClick={(e) => rotateItem(item.id, item.rotation || 0, e)}
@@ -145,13 +144,6 @@ const VirtualHome = () => {
             </motion.div>
           );
         })}
-
-        {items.length === 0 && (
-          <div className="absolute inset-0 flex flex-col items-center justify-center text-gray-300 pointer-events-none">
-            <Layout size={48} className="mb-2 opacity-20" />
-            <p className="font-serif italic text-lg">Empty house... Let's add some love!</p>
-          </div>
-        )}
       </div>
     </div>
   );
