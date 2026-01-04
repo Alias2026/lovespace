@@ -185,12 +185,6 @@ const Letters = () => {
                   >
                     <X size={24} />
                   </button>
-                  <button
-                    onClick={() => deleteLetter(letter.id)}
-                     className="absolute top-4 left-4 text-love-200 hover:text-love-500"
-                  >
-                     <X size={16} />
-                  </button>
 
                   <div className="text-center mb-6">
                     <Icon size={40} className="text-love-400 mx-auto mb-4" />
