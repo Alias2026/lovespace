@@ -2,12 +2,12 @@ import React, { useState, useEffect, useRef } from 'react';
 import { db } from '../firebase';
 import { ref, onValue, push, remove, update } from 'firebase/database';
 import { motion } from 'framer-motion';
-// Imports simplifiés pour éviter les erreurs de build
+// Imports explicites et sécurisés pour Lucide-React
 import { 
   Armchair, Bed, Flower2, Lamp, Tv, Box, Trash2, RotateCcw, 
   Square, DoorOpen, Bath, Refrigerator, Flame, Layout, 
   RotateCw, Construction, Maximize2, Minimize2, Layers, Monitor, 
-  Cat, Dog, Target, Window as WindowIcon
+  Cat, Dog, Target, Window as WindowIcon 
 } from 'lucide-react';
 import Button from '../components/ui/Button';
 
@@ -21,7 +21,7 @@ const FurnitureList = [
   { id: 'dog', icon: Dog, label: 'Dog' },
   { id: 'cat', icon: Cat, label: 'Cat' },
   // RANGEMENT
-  { id: 'closet', icon: Layers, label: 'Armoire' },
+  { id: 'closet', icon: Layers, label: 'Closet' },
   // SALON / CHAMBRE
   { id: 'sofa', icon: Armchair, label: 'Sofa' },
   { id: 'bed', icon: Bed, label: 'Bed' },
@@ -80,14 +80,14 @@ const VirtualHome = () => {
       <div className="flex justify-between items-center bg-white p-6 rounded-3xl shadow-sm border border-warm-beige">
         <div>
           <h2 className="text-3xl font-serif text-love-900 font-bold">Dream Home</h2>
-          <p className="text-gray-500 italic">Resize, rotate and build with pets.</p>
+          <p className="text-gray-500 italic">Resize, rotate and build together.</p>
         </div>
         <Button variant="secondary" onClick={() => remove(ref(db, 'virtual_home'))}>
           <RotateCcw size={18} className="mr-2" /> Reset
         </Button>
       </div>
 
-      {/* Toolbar */}
+      {/* Toolbar avec scroll horizontal pour mobile */}
       <div className="flex flex-nowrap md:flex-wrap gap-2 p-4 bg-white rounded-2xl border border-warm-beige shadow-inner overflow-x-auto">
         {FurnitureList.map((f) => (
           <button 
@@ -95,7 +95,7 @@ const VirtualHome = () => {
             onClick={() => addItem(f.id)} 
             className="flex flex-col items-center p-3 hover:bg-love-50 rounded-2xl transition-all min-w-[75px]"
           >
-            <f.icon className={f.id === 'dog' || f.id === 'cat' ? "text-amber-500" : "text-love-400"} size={24} />
+            <f.icon className={(f.id === 'dog' || f.id === 'cat') ? "text-amber-500" : "text-love-400"} size={24} />
             <span className="text-[10px] font-bold text-gray-400 mt-1 uppercase">{f.label}</span>
           </button>
         ))}
@@ -109,7 +109,7 @@ const VirtualHome = () => {
       >
         {items.map((item) => {
           const config = FurnitureList.find(f => f.id === item.type);
-          const Icon = config ? config.icon : Box;
+          const IconComponent = config ? config.icon : Box;
           const currentScale = item.scale || 1;
 
           return (
@@ -129,37 +129,38 @@ const VirtualHome = () => {
               className="cursor-move p-4"
             >
               <div className="relative group">
+                {/* Rendu visuel */}
                 {item.type === 'wall' ? (
                    <div className="bg-gray-800 w-32 h-4 rounded-full shadow-md" />
                 ) : (
-                  <div className={item.type === 'dog' || item.type === 'cat' ? "text-amber-600" : "text-love-900"}>
-                    <Icon size={45} className="drop-shadow-sm" />
+                  <div className={(item.type === 'dog' || item.type === 'cat') ? "text-amber-600" : "text-love-900"}>
+                    <IconComponent size={45} className="drop-shadow-sm" />
                   </div>
                 )}
                 
-                {/* Menu de contrôles au survol */}
+                {/* Menu au survol */}
                 <div className="absolute -top-12 left-1/2 -translate-x-1/2 flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity bg-white/95 p-1.5 rounded-full shadow-2xl border border-warm-beige z-50">
                   <button 
                     onClick={(e) => updateItem(item.id, { scale: currentScale + 0.2 }, e)}
-                    className="p-1 hover:text-love-500 transition-colors"
+                    className="p-1 hover:text-love-500"
                   >
                     <Maximize2 size={16} />
                   </button>
                   <button 
                     onClick={(e) => updateItem(item.id, { scale: Math.max(0.2, currentScale - 0.2) }, e)}
-                    className="p-1 hover:text-love-500 transition-colors"
+                    className="p-1 hover:text-love-500"
                   >
                     <Minimize2 size={16} />
                   </button>
                   <button 
                     onClick={(e) => updateItem(item.id, { rotation: (item.rotation + 45) % 360 }, e)}
-                    className="p-1 hover:text-blue-500 transition-colors"
+                    className="p-1 hover:text-blue-500"
                   >
                     <RotateCw size={16} />
                   </button>
                   <button 
                     onClick={(e) => { e.stopPropagation(); remove(ref(db, `virtual_home/${item.id}`)); }}
-                    className="p-1 hover:text-red-500 transition-colors"
+                    className="p-1 hover:text-red-500"
                   >
                     <Trash2 size={16} />
                   </button>
