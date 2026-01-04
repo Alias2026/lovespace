@@ -34,7 +34,7 @@ const NavItem = ({ to, icon: Icon, label }) => {
 
 const Layout = ({ children }) => {
   return (
-    <div className="min-h-screen bg-warm-cream flex flex-col">
+    <div className="min-h-screen bg-warm-cream flex flex-col relative">
       <header className="bg-white/80 backdrop-blur-md sticky top-0 z-50 border-b border-warm-beige shadow-sm">
         <div className="max-w-4xl mx-auto px-4 py-3 flex justify-between items-center">
           <Link to="/" className="flex items-center gap-2">
@@ -55,7 +55,8 @@ const Layout = ({ children }) => {
         </div>
       </header>
 
-      <main className="flex-grow container mx-auto px-4 py-8 max-w-4xl">
+      {/* AJOUT DE pb-28 ICI : c'est l'espace pour le menu mobile */}
+      <main className="flex-grow container mx-auto px-4 py-8 pb-28 max-w-4xl overflow-y-auto">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
@@ -65,8 +66,9 @@ const Layout = ({ children }) => {
         </motion.div>
       </main>
 
-      <nav className="md:hidden fixed bottom-0 left-0 right-0 bg-white border-t border-warm-beige pb-safe z-50">
-        <div className="flex justify-around items-center p-2">
+      {/* Menu mobile fixe */}
+      <nav className="md:hidden fixed bottom-0 left-0 right-0 bg-white/95 backdrop-blur-sm border-t border-warm-beige z-50 shadow-[0_-4px_10px_rgba(0,0,0,0.05)]">
+        <div className="flex justify-around items-center p-2 pb-safe">
           <NavItem to="/" icon={Heart} label="Home" />
           <NavItem to="/wishlist" icon={Plane} label="Travel" />
           <NavItem to="/letters" icon={Mail} label="Letters" />
