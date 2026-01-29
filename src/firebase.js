@@ -1,5 +1,6 @@
 import { initializeApp } from "firebase/app";
 import { getDatabase } from "firebase/database";
+import { getAuth, signInAnonymously } from "firebase/auth";
 
 const firebaseConfig = {
   apiKey: "AIzaSyAcco20FEbMPGad7p5xHvmPom0ws39QD8Q",
@@ -11,8 +12,20 @@ const firebaseConfig = {
   appId: "1:9687691018:web:e686cc11613becb75094f3"
 };
 
-// Initialize Firebase
+// Initialisation Firebase
 const app = initializeApp(firebaseConfig);
 
-// On crée et on exporte la connexion
+// Database
 export const db = getDatabase(app);
+
+// Auth
+const auth = getAuth(app);
+
+// Connexion anonyme automatique
+signInAnonymously(auth)
+  .then(() => {
+    console.log("✅ Connecté anonymement");
+  })
+  .catch((error) => {
+    console.error("❌ Erreur auth :", error);
+  });
